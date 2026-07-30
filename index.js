@@ -8,32 +8,6 @@
 //   input: "halo apa kabar?",
 // });
 // console.log(interaction.output_text);
-// import express from "express";
-// import multer from "multer";
-// import { GoogleGenAI } from "@google/genai";
-// import "dotenv/config";
-
-// // bootstrap aplikasi Express
-// const app = express();
-// const upload = multer();
-
-// // bootstrap GoogleGenAI
-// const ai = new GoogleGenAI({});
-
-// // method chaining --> e.g. console.log() atau ai.interactions.create()
-// app.use(express.json());
-
-// // route handling
-// app.get('/', (req, res) => {
-//   console.log("Akses masuk: '/'");
-//   res.json({ message: "Healthy" });
-// });
-
-// // setup & serve
-// const PORT = 3001;
-// app.listen(PORT, () => {
-//   console.log(`Masukkk pak Ekooo, di Port: ${PORT}`);
-// });
 
 import express from "express";
 import multer from "multer";
@@ -57,34 +31,29 @@ app.get('/', (req, res) => {
   res.json({ message: "Healthy" });
 });
 
-// app.get()
-// app.post()
-// app.patch()
-// app.put()
-// app.delete()
-
 app.post(
-  '/generate-from-image',
+  '/generate',
   upload.single('image'),
   async (req, res) => {
-    // req.body = { prompt: "Halo dunia!" }
-    const { prompt } = req.body; // object destructuring
-    // prompt = "Halo dunia!"
-    const base64Image = req.file?.buffer.toString('base64');
-    //                          ^
-    //                          optional method chaining
-    const imageMimeType = req.file?.mimetype;
+    const { prompt } = req.body;
 
-    // try-catch
-    // try --> kita "coba" jalankan kodingan di dalam kotak/block { } pertama
-    // catch --> kita "tangkap" error yang ditimbulkan di proses `try` tadi
     try {
+      // 1. Inisialisasi array input dengan teks prompt utama
+      const input = [{ type: "text", text: prompt }];
+
+      // 2. Jika ada file gambar yang diunggah, baru masukkan object image ke array
+      if (req.file) {
+        input.push({
+          type: "image",
+          data: req.file.buffer.toString('base64'),
+          mime_type: req.file.mimetype
+        });
+      }
+
+      // 3. Panggil API AI sekali saja
       const aiResponse = await ai.interactions.create({
         model: "gemma-4-26b-a4b-it",
-        input: [
-          { type: "text", text: prompt },
-          { type: "image", data: base64Image, mime_type: imageMimeType }
-        ],
+        input: input,
       });
 
       res.status(200).json({ result: aiResponse.output_text });
