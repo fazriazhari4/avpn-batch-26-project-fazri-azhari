@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>NutriPal - Asisten Diet & Nutrisi Sehat</title>
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <!-- FontAwesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+  <link rel="stylesheet" href="style.css"/>
+</head>
+<body>
+  <div class="app-wrapper">
+    <!-- Header -->
+    <header class="app-header">
+      <div class="brand">
+        <div class="logo-icon">
+          <i class="fa-solid fa-leaf"></i>
+        </div>
+        <div class="brand-info">
+          <h1>NutriPal AI</h1>
+          <span class="status"><span class="dot"></span> Asisten Diet & Nutrisi</span>
+        </div>
+      </div>
+      <div class="header-badge">
+        <i class="fa-solid fa-heart-pulse"></i> Hidup Sehat
+      </div>
+    </header>
+
+    <!-- Main Chat Container -->
+    <main class="chat-container">
+      <div id="chat-box" class="chat-box">
+        <!-- Welcome Card -->
+        <div class="welcome-card" id="welcome-card">
+          <div class="welcome-icon">🥗</div>
+          <h2>Halo! Saya NutriPal</h2>
+          <p>Asisten konsultan diet dan nutrisi pribadi kamu. Siap membantu perencanaan pola makan, rekomendasi menu sehat, dan gaya hidup seimbang!</p>
+          
+          <div class="suggestions-label">Coba pilih atau tanyakan topik berikut:</div>
+          <div class="suggestions-grid">
+            <button type="button" class="chip-btn" data-prompt="Berikan rekomendasi menu sarapan sehat untuk defisit kalori">
+              <i class="fa-solid fa-utensils"></i> Menu Sarapan Sehat
+            </button>
+            <button type="button" class="chip-btn" data-prompt="Bagaimana cara menghitung kebutuhan kalori harian (TDEE)?">
+              <i class="fa-solid fa-calculator"></i> Cara Hitung Kalori
+            </button>
+            <button type="button" class="chip-btn" data-prompt="Berikan tips diet tinggi protein untuk pembentukan otot">
+              <i class="fa-solid fa-dumbbell"></i> Tips High Protein
+            </button>
+            <button type="button" class="chip-btn" data-prompt="Camilan sehat apa yang aman dikonsumsi saat malam hari?">
+              <i class="fa-solid fa-apple-whole"></i> Camilan Malam Sehat
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Action Bar -->
+      <div class="quick-prompts-bar">
+        <button type="button" class="quick-tag" data-prompt="Rekomendasikan menu makan siang 500 kalori">🥗 Menu 500kkal</button>
+        <button type="button" class="quick-tag" data-prompt="Tips mudah mengurangi gula harian">🍎 Kurangi Gula</button>
+        <button type="button" class="quick-tag" data-prompt="Berapa banyak minum air putih yang ideal per hari?">💧 Kebutuhan Air</button>
+      </div>
+
+      <!-- Input Form -->
+      <form id="chat-form" class="chat-form">
+        <div class="input-wrapper">
+          <input 
+            type="text" 
+            id="user-input" 
+            placeholder="Tanyakan sesuatu tentang diet & nutrisi..." 
+            autocomplete="off" 
+            required 
+          />
+          <button type="submit" id="send-btn" title="Kirim Pesan">
+            <i class="fa-solid fa-paper-plane"></i>
+          </button>
+        </div>
+      </form>
+    </main>
+  </div>
+  <script src="script.js"></script>
+</body>
+</html>

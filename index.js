@@ -13,6 +13,7 @@ import express from "express";
 import multer from "multer";
 import { GoogleGenAI } from "@google/genai";
 import "dotenv/config";
+import cors from "cors";
 
 // bootstrap aplikasi Express
 const app = express();   // webserver
@@ -22,13 +23,134 @@ const upload = multer(); // yang nge-handle file upload
 const ai = new GoogleGenAI({});
 
 // method chaining --> e.g. console.log() atau ai.interactions.create()
+app.use(express.static("public"))
+app.use(cors());
 app.use(express.json());
 
 // route handling
-app.get('/', (req, res) => {
-  console.log("Akses masuk: '/'");
+// app.get('/', (req, res) => {
+//   console.log("Akses masuk: '/'");
 
-  res.json({ message: "Healthy" });
+//   res.json({ message: "Healthy" });
+// });
+
+//app.post("/chat")
+// app.post("/chat", async (req, res) => {
+//   const { conversation } = req.body;
+
+//   try {
+//     if(!Array.isArray(conversation)) {
+//       return res.status(400).json({error: "Harus array woy!!!"});
+//     }
+
+//     const aiResponse = await ai.interactions.create({
+//       input: conversation,
+//       model: "gemma-4-26b-a4b-it",
+//       generation_config: {
+//         temperature: 0.9,
+//         top_p: 0.9
+//       },
+//       system_instruction: "Jawab dengan Bahasa Indonesia"
+//     })
+    
+//     return res.status(200).json({ result: aiResponse.output_text });
+//   } catch(e) {
+//     console.log(e);
+//     return res.status(500).json({ error: "Ada masalah di server kami, nanti kami perbaiki dulu ya!" });
+//   }
+// });
+
+// app.post("/chat", async (req, res) => {
+//   // 1. extract [conversation] dan [interactionId] jika ada, dari [req.body]
+//   const { conversation, interactionId } = req.body;
+//   // req.body = { conversation: [ { ... } ] }
+//   // conversation --> [ {  } ]
+
+//   try {
+//     // 2. tambahkan satpam untuk mengecek apakah dia berbentuk array atau bukan
+//     // satpam 1 --> cek dia bentuknya array atau bukan
+//     if (!Array.isArray(conversation)) {
+//       return res.status(400).json({ error: "Messages must be an array!!!!!!1!" });
+//     }
+
+//     const payload = {
+//       // conversation harus berisi --> { role: 'user' | 'model', type: 'text', text: '<isi-teksnya>' } dalam bentuk array
+//       input: conversation,
+//       model: "gemma-4-26b-a4b-it",
+//       generation_config: {
+//         temperature: 0.9,
+//         top_p: 0.9,
+//       },
+//       system_instruction: "Jawab dengan bahasa Jawa, dan dalam intonasi yang sopan dan nggak kasar!"
+//     };
+
+//     // satpam ke-2 --> cek apakah ada [interactionId]
+//     if (interactionId) {
+//       payload.previous_interaction_id = interactionId;
+//     }
+
+//     // 3. lemparkan request ke Gemini API
+//     const aiResponse = await ai.interactions.create(payload);
+
+//     // 4. kembalikan hasilnya berupa teks
+//     return res.status(200).json({ result: aiResponse.output_text, interactionId: aiResponse.previous_interaction_id });
+//   } catch (e) {
+//     // kalau error, log dan juga kembalikan pesan error-nya di sini
+//     console.log(e);
+//     return res.status(500).json({ error: "Ada masalah di server kami, nanti kami perbaiki dulu ya!" });
+//   }
+// });
+
+app.post("/chat", async (req, res) => {
+  // 1. extract [conversation] dan [interactionId] jika ada, dari [req.body]
+  const { conversation, interactionId } = req.body;
+  // req.body = { conversation: [ { ... } ] }
+  // conversation --> [ {  } ]
+
+  try {
+    // 2. tambahkan satpam untuk mengecek apakah dia berbentuk array atau bukan
+    // satpam 1 --> cek dia bentuknya array atau bukan
+    if (!Array.isArray(conversation)) {
+      return res.status(400).json({ error: "Messages must be an array!!!!!!1!" });
+    }
+
+    const payload = {
+      // conversation harus berisi --> { role: 'user' | 'model', type: 'text', text: '<isi-teksnya>' } dalam bentuk array
+      input: conversation,
+      model: "gemma-4-26b-a4b-it",
+      generation_config: {
+        temperature: 0.9,
+        top_p: 0.9,
+      },
+      system_instruction: `Kamu adalah asisten konsultan diet dan nutrisi pribadi yang ramah, suportif, dan menggunakan bahasa Indonesia yang santai dan akrab (seperti teman mengobrol).
+
+Tugas utama kamu:
+1. Memberikan saran, tips, dan edukasi seputar diet sehat, pola makan, nutrisi, dan gaya hidup sehat.
+2. Memberikan REKOMENDASI MENU HARIAN (sarapan, makan siang, makan malam, dan camilan sehat) yang bervariasi dan lezat sesuai tujuan pengguna (misal: defisit kalori, bulking, diet rendah gula, diet tinggi protein, dll).
+3. Membantu menghitung atau memberikan estimasi kalori dan nutrisi makanan jika diminta.
+
+Aturan Penting:
+- Gunakan bahasa santai, kasual, dan bersemangat.
+- Jika pengguna menanyakan hal di luar topik diet, makanan sehat, nutrisi, atau gaya hidup sehat (seperti teknologi, coding, politik, game, dll.), tolak dengan santai dan ingatkan bahwa kamu hanya berfokus membantu urusan diet dan rekomendasi menu sehat.`
+    };
+
+    // satpam ke-2 --> cek apakah ada [interactionId]
+    if (interactionId) {
+      payload.previous_interaction_id = interactionId;
+    }
+
+    // 3. lemparkan request ke Gemini API
+    const aiResponse = await ai.interactions.create(payload);
+
+    console.log({aiResponse})
+
+    // 4. kembalikan hasilnya berupa teks
+    return res.status(200).json({ result: aiResponse.output_text, interactionId: aiResponse.id });
+  } catch (e) {
+    // kalau error, log dan juga kembalikan pesan error-nya di sini
+    console.log(e);
+    return res.status(500).json({ error: "Ada masalah di server kami, nanti kami perbaiki dulu ya!" });
+  }
 });
 
 app.post(
