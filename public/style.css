@@ -436,13 +436,8 @@ body {
 }
 
 .input-wrapper button {
-  width: 42px;
-  height: 42px;
   border-radius: 50%;
   border: none;
-  background: var(--primary);
-  color: #ffffff;
-  font-size: 16px;
   cursor: pointer;
   display: flex;
   align-items: center;
@@ -451,14 +446,118 @@ body {
   flex-shrink: 0;
 }
 
-.input-wrapper button:hover:not(:disabled) {
+#upload-btn {
+  width: 36px;
+  height: 36px;
+  background: transparent;
+  color: var(--text-muted);
+  font-size: 18px;
+}
+
+#upload-btn:hover:not(:disabled) {
+  background: var(--primary-light);
+  color: var(--primary-dark);
+  transform: scale(1.08);
+}
+
+#send-btn {
+  width: 42px;
+  height: 42px;
+  background: var(--primary);
+  color: #ffffff;
+  font-size: 16px;
+}
+
+#send-btn:hover:not(:disabled) {
   background: var(--primary-hover);
   transform: scale(1.05);
 }
 
 .input-wrapper button:disabled {
   background: #cbd5e1;
+  color: #94a3b8;
   cursor: not-allowed;
+}
+
+/* Image Preview Container */
+.image-preview-container {
+  margin-bottom: 12px;
+  display: flex;
+  align-items: center;
+  animation: fadeIn 0.2s ease-out;
+}
+
+.preview-card {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--primary-light);
+  border: 1px solid rgba(16, 185, 129, 0.3);
+  padding: 6px 12px;
+  border-radius: var(--radius-md);
+  max-width: 100%;
+}
+
+.preview-card img {
+  width: 44px;
+  height: 44px;
+  object-fit: cover;
+  border-radius: 8px;
+  border: 1px solid rgba(16, 185, 129, 0.4);
+}
+
+.preview-info {
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
+}
+
+.preview-filename {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--primary-dark);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-width: 200px;
+}
+
+.preview-sub {
+  font-size: 0.75rem;
+  color: var(--text-muted);
+}
+
+#remove-image-btn {
+  background: rgba(239, 68, 68, 0.1);
+  color: #ef4444;
+  border: none;
+  width: 26px;
+  height: 26px;
+  border-radius: 50%;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  margin-left: 8px;
+}
+
+#remove-image-btn:hover {
+  background: #ef4444;
+  color: #ffffff;
+}
+
+/* Chat Image in Message */
+.chat-image {
+  max-width: 100%;
+  max-height: 240px;
+  object-fit: cover;
+  border-radius: var(--radius-md);
+  margin-bottom: 8px;
+  display: block;
+  box-shadow: var(--shadow-sm);
+  border: 2px solid rgba(255, 255, 255, 0.6);
 }
 
 /* Typing Indicator Animation */

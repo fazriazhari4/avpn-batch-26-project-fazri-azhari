@@ -5,9 +5,61 @@ const chatBox = document.getElementById('chat-box');
 const sendBtn = document.getElementById('send-btn');
 const welcomeCard = document.getElementById('welcome-card');
 
+// Image upload DOM Elements
+const uploadBtn = document.getElementById('upload-btn');
+const imageInput = document.getElementById('image-input');
+const imagePreviewContainer = document.getElementById('image-preview-container');
+const imagePreview = document.getElementById('image-preview');
+const previewFilename = document.getElementById('preview-filename');
+const removeImageBtn = document.getElementById('remove-image-btn');
+
 // State management
 const conversation = [];
 let interactionId = null;
+let selectedFile = null;
+let selectedFileBase64 = null;
+
+// Image upload event listeners
+if (uploadBtn && imageInput) {
+  uploadBtn.addEventListener('click', () => {
+    imageInput.click();
+  });
+
+  imageInput.addEventListener('change', (e) => {
+    const file = e.target.files[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
+        alert('Harap pilih file gambar (JPG, PNG, WEBP, dll.)');
+        imageInput.value = '';
+        return;
+      }
+      selectedFile = file;
+      if (previewFilename) previewFilename.textContent = file.name;
+
+      const reader = new FileReader();
+      reader.onload = function(evt) {
+        selectedFileBase64 = evt.target.result;
+        if (imagePreview) imagePreview.src = selectedFileBase64;
+        if (imagePreviewContainer) imagePreviewContainer.style.display = 'flex';
+      };
+      reader.readAsDataURL(file);
+    }
+  });
+}
+
+if (removeImageBtn) {
+  removeImageBtn.addEventListener('click', () => {
+    clearSelectedImage();
+  });
+}
+
+function clearSelectedImage() {
+  selectedFile = null;
+  selectedFileBase64 = null;
+  if (imageInput) imageInput.value = '';
+  if (imagePreview) imagePreview.src = '';
+  if (imagePreviewContainer) imagePreviewContainer.style.display = 'none';
+}
 
 /**
  * Format markdown-like text to basic HTML safely
@@ -66,9 +118,10 @@ function formatResponseText(text) {
  * @param {string} sender - 'user' or 'bot'
  * @param {string} rawText - Message text
  * @param {boolean} isTyping - whether this is typing state
+ * @param {string|null} imageSrc - Base64 or URL of attached image
  * @returns {HTMLElement} The created message content element
  */
-function appendMessage(sender, rawText, isTyping = false) {
+function appendMessage(sender, rawText, isTyping = false, imageSrc = null) {
   // Hide welcome card if visible
   if (welcomeCard && welcomeCard.style.display !== 'none') {
     welcomeCard.style.display = 'none';
@@ -97,10 +150,23 @@ function appendMessage(sender, rawText, isTyping = false) {
       </div>
     `;
   } else {
+    if (imageSrc) {
+      const imgElem = document.createElement('img');
+      imgElem.src = imageSrc;
+      imgElem.alt = 'Foto Makanan';
+      imgElem.classList.add('chat-image');
+      content.appendChild(imgElem);
+    }
     if (sender === 'bot') {
-      content.innerHTML = formatResponseText(rawText);
+      const textDiv = document.createElement('div');
+      textDiv.innerHTML = formatResponseText(rawText);
+      content.appendChild(textDiv);
     } else {
-      content.textContent = rawText;
+      if (rawText) {
+        const textElem = document.createElement('p');
+        textElem.textContent = rawText;
+        content.appendChild(textElem);
+      }
     }
   }
 
@@ -113,41 +179,59 @@ function appendMessage(sender, rawText, isTyping = false) {
 }
 
 /**
- * Sends prompt text to backend API
+ * Sends prompt text and optional image to backend API
  * @param {string} text 
  */
 async function sendMessage(text) {
-  if (!text || !text.trim()) return;
+  if ((!text || !text.trim()) && !selectedFile) return;
 
-  // Clear & disable input field
+  const userText = text ? text.trim() : '';
+  const currentImageFile = selectedFile;
+  const currentImageBase64 = selectedFileBase64;
+
+  // Clear input & image selection
   userInput.value = '';
+  clearSelectedImage();
+  
   userInput.disabled = true;
   if (sendBtn) sendBtn.disabled = true;
+  if (uploadBtn) uploadBtn.disabled = true;
 
-  const userText = text.trim();
+  // 1. Add user's message to UI and conversation array
+  appendMessage('user', userText, false, currentImageBase64);
 
-  // 1. Add user's message to chat box and conversation history
-  appendMessage('user', userText);
-  conversation.push({ type: 'text', text: userText });
+  // If text prompt was provided or default prompt for image-only submission
+  const finalPromptText = userText || (currentImageFile ? 'Tolong analisis foto makanan ini dan berikan estimasi kalori serta informasinya.' : '');
+  
+  if (finalPromptText) {
+    conversation.push({ type: 'text', text: finalPromptText });
+  }
+
+  if (currentImageBase64 && currentImageFile) {
+    const base64Data = currentImageBase64.split(',')[1];
+    conversation.push({
+      type: 'image',
+      data: base64Data,
+      mime_type: currentImageFile.type
+    });
+  }
 
   // 2. Show typing indicator
   const botContentElement = appendMessage('bot', '', true);
 
   try {
-    const payload = {
-      conversation: conversation
-    };
-
+    const formData = new FormData();
+    formData.append('conversation', JSON.stringify(conversation));
     if (interactionId) {
-      payload.interactionId = interactionId;
+      formData.append('interactionId', interactionId);
+    }
+    if (currentImageFile) {
+      formData.append('image', currentImageFile);
     }
 
     const response = await fetch('/chat', {
       method: 'POST',
-      headers: {
-        'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
+      body: formData
     });
 
     if (!response.ok) {
@@ -157,7 +241,6 @@ async function sendMessage(text) {
     const data = await response.json();
 
     if (data && data.result) {
-      // Replace typing indicator with formatted result
       botContentElement.innerHTML = formatResponseText(data.result);
       conversation.push({ type: 'text', text: data.result });
 
@@ -175,6 +258,7 @@ async function sendMessage(text) {
   } finally {
     userInput.disabled = false;
     if (sendBtn) sendBtn.disabled = false;
+    if (uploadBtn) uploadBtn.disabled = false;
     userInput.focus();
     chatBox.scrollTop = chatBox.scrollHeight;
   }
@@ -188,6 +272,12 @@ chatForm.addEventListener('submit', function (e) {
 
 // Handle Suggestion & Quick Tag Click
 document.addEventListener('click', function (e) {
+  const uploadAction = e.target.closest('[data-action="trigger-upload"]');
+  if (uploadAction) {
+    if (imageInput) imageInput.click();
+    return;
+  }
+
   const target = e.target.closest('[data-prompt]');
   if (target) {
     const promptText = target.getAttribute('data-prompt');
