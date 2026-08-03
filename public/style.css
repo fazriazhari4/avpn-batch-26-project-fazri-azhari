@@ -277,11 +277,16 @@ body {
   text-align: left;
 }
 
-.chip-btn:hover {
+.chip-btn:hover:not(:disabled) {
   background: var(--primary);
   color: #ffffff;
   transform: translateY(-2px);
   box-shadow: var(--shadow-sm);
+}
+
+.chip-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Chat Messages */
@@ -391,10 +396,15 @@ body {
   flex-shrink: 0;
 }
 
-.quick-tag:hover {
+.quick-tag:hover:not(:disabled) {
   background: var(--primary-light);
   color: var(--primary-dark);
   border-color: var(--primary);
+}
+
+.quick-tag:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 /* Chat Form */

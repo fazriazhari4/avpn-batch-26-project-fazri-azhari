@@ -18,10 +18,28 @@ const conversation = [];
 let interactionId = null;
 let selectedFile = null;
 let selectedFileBase64 = null;
+let isLoading = false;
+
+/**
+ * Enables or disables inputs and recommendation buttons during request loading
+ * @param {boolean} disabled 
+ */
+function setInputsState(disabled) {
+  isLoading = disabled;
+  if (userInput) userInput.disabled = disabled;
+  if (sendBtn) sendBtn.disabled = disabled;
+  if (uploadBtn) uploadBtn.disabled = disabled;
+
+  const recommendBtns = document.querySelectorAll('[data-prompt], [data-action="trigger-upload"]');
+  recommendBtns.forEach(btn => {
+    btn.disabled = disabled;
+  });
+}
 
 // Image upload event listeners
 if (uploadBtn && imageInput) {
   uploadBtn.addEventListener('click', () => {
+    if (isLoading) return;
     imageInput.click();
   });
 
@@ -183,6 +201,7 @@ function appendMessage(sender, rawText, isTyping = false, imageSrc = null) {
  * @param {string} text 
  */
 async function sendMessage(text) {
+  if (isLoading) return;
   if ((!text || !text.trim()) && !selectedFile) return;
 
   const userText = text ? text.trim() : '';
@@ -193,9 +212,7 @@ async function sendMessage(text) {
   userInput.value = '';
   clearSelectedImage();
   
-  userInput.disabled = true;
-  if (sendBtn) sendBtn.disabled = true;
-  if (uploadBtn) uploadBtn.disabled = true;
+  setInputsState(true);
 
   // 1. Add user's message to UI and conversation array
   appendMessage('user', userText, false, currentImageBase64);
@@ -256,9 +273,7 @@ async function sendMessage(text) {
     botContentElement.innerHTML = '<p>Gagal terhubung ke server. Silakan coba lagi nanti.</p>';
     conversation.pop();
   } finally {
-    userInput.disabled = false;
-    if (sendBtn) sendBtn.disabled = false;
-    if (uploadBtn) uploadBtn.disabled = false;
+    setInputsState(false);
     userInput.focus();
     chatBox.scrollTop = chatBox.scrollHeight;
   }
@@ -267,11 +282,14 @@ async function sendMessage(text) {
 // Handle Form Submit
 chatForm.addEventListener('submit', function (e) {
   e.preventDefault();
+  if (isLoading) return;
   sendMessage(userInput.value);
 });
 
 // Handle Suggestion & Quick Tag Click
 document.addEventListener('click', function (e) {
+  if (isLoading) return;
+
   const uploadAction = e.target.closest('[data-action="trigger-upload"]');
   if (uploadAction) {
     if (imageInput) imageInput.click();
